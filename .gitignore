@@ -1,4 +1,5 @@
 intro_OPENMP/hello
 intro_OPENMP/summ
 intro_OPENMP/sequential_access
+additional_nested_omp/additional_nested_omp
 .vscode/
