@@ -26,36 +26,41 @@ int main(int argc, char *argv[]) {
     const int level_2 = 2;
     const int level_3 = 3;
 
+    int counter = 0;
+
     // why only 8 left?? but more than 8 left when nesting is off
     omp_set_num_threads(threads_from_user - level_1); // Set number of threads to see difference in levels
-    #pragma omp parallel
+    #pragma omp parallel shared(counter)
     {
         omp_set_num_threads(threads_from_user - level_2); // Set number of threads to see difference in levels
-        #pragma omp critical // Using for prevent conflicts in out stream
+        #pragma omp critical // Using for preventing conflicts in out stream
         {
+            counter +=1;
             std::cout << "Thread num = " << omp_get_thread_num() 
                       << ". Summ of threads on this level = " << omp_get_num_threads() 
-                      << ". Summ of threads on the previous level = "
+                      << ". Summ of threads on the previous level = " << counter
                       << ". Level of nesting = " << omp_get_level() << std::endl;
         }
-        #pragma omp parallel
+        #pragma omp parallel shared(counter)
         {
             omp_set_num_threads(threads_from_user - level_3); // Set number of threads to see difference in levels
             #pragma omp critical // Using for prevent conflicts in out stream
             {
+                counter += 1;
                 std::cout << "Thread num = " << omp_get_thread_num() 
                           << ". Summ of threads on this level = " << omp_get_num_threads() 
-                          << ". Summ of threads on the previous level = "
+                          << ". Summ of threads on the previous level = " << counter
                           << ". Level of nesting = " << omp_get_level() << std::endl;
             }
 
-            #pragma omp parallel
+            #pragma omp parallel shared(counter)
             {
                 #pragma omp critical // Using for prevent conflicts in out stream
                 {
+                    counter += 1;
                     std::cout << "Thread num = " << omp_get_thread_num() 
                               << ". Summ of threads on this level = " << omp_get_num_threads()
-                              << ". Summ of threads on the previous level = "
+                              << ". Summ of threads on the previous level = " << counter
                               << ". Level of nesting = " << omp_get_level() << std::endl;
                 }
             }
