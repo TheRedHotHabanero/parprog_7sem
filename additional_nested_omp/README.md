@@ -38,8 +38,8 @@ int team_size = omp_get_team_size(level);
 ```
 
 ### Скриншоты работы
-<image src="1.png">
+<image src="screenshots/1.png">
 
-<image src="2.png">
+<image src="screenshots/2.png">
 
-<image src="3.png">
+<image src="screenshots/3.png">
