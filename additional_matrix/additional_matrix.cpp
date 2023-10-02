@@ -3,17 +3,8 @@
 #include <vector>
 #include <iomanip>
 #include <random>
+#include <chrono>
 
-// #pragma omp parallel proc_bind(spread) num_threads(N)
-
-/*
-#pragma omp parallel for collapse(2)
-    for (i = 0; i < imax; i++) {
-        for (j = 0; j < jmax; j++) {
-            // какой-то код
-        }
-    }
-*/
 using matrix_type = std::vector<std::vector<int>>;
 
 void fill_matrix(matrix_type& matrix, const int &N) {
@@ -53,6 +44,7 @@ matrix_type matrix_multiplication_sequential(const matrix_type& matrixA, const m
     const int N = matrixA.size();
 
     matrix_type matrixRes(N, std::vector<int>(N, 0));
+    auto start_time = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             for (int k = 0; k < N; k++) {
@@ -60,6 +52,9 @@ matrix_type matrix_multiplication_sequential(const matrix_type& matrixA, const m
             }
         }
     }
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    std::cout << "Taken time sequential: " << duration.count() << " ml" << std::endl;
 
     return matrixRes;
 }
@@ -69,7 +64,8 @@ matrix_type matrix_multiplication_parallel(const matrix_type& matrixA, const mat
     const int N = matrixA.size();
 
     matrix_type matrixRes(N, std::vector<int>(N, 0));
-    #pragma omp parallel for
+    auto start_time = std::chrono::high_resolution_clock::now();
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             for (int k = 0; k < N; k++) {
@@ -77,6 +73,9 @@ matrix_type matrix_multiplication_parallel(const matrix_type& matrixA, const mat
             }
         }
     }
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    std::cout << "Taken time parallel: " << duration.count() << " ml" << std::endl;
 
     return matrixRes;
 }
@@ -102,14 +101,16 @@ int main(int argc, char *argv[]) {
     fill_matrix(matrixA, N);
     fill_matrix(matrixB, N);
 
-    print_matrix(matrixA, N, "MATRIX A");
-    print_matrix(matrixB, N, "MATRIX B");
+    if (N <= 25) {
+        print_matrix(matrixA, N, "MATRIX A");
+        print_matrix(matrixB, N, "MATRIX B");
+    }
 
     matrix_type matrixResultSeq = matrix_multiplication_sequential(matrixA, matrixB);
-    print_matrix(matrixResultSeq, N, "RESULT MATRIX - SEQUENTIAL MODE");
+    // print_matrix(matrixResultSeq, N, "RESULT MATRIX - SEQUENTIAL MODE");
 
     matrix_type matrixResultPar = matrix_multiplication_parallel(matrixA, matrixB);
-    print_matrix(matrixResultPar, N, "RESULT MATRIX - PARALLEL MODE");
+    // print_matrix(matrixResultPar, N, "RESULT MATRIX - PARALLEL MODE");
 
 
     return 0;
