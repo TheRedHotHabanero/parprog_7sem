@@ -3,4 +3,5 @@ intro_OPENMP/summ
 intro_OPENMP/sequential_access
 additional_nested_omp/additional_nested_omp
 additional_untied_tasks/additional_untied_tasks
+additional_matrix/additional_matrix
 .vscode/
