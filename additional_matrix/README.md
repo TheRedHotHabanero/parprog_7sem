@@ -9,6 +9,15 @@ build/additional_matrix <размер матрицы>
 Замечено, что бустованная последовательная версия не особенно стабильно работает от количества блоков.
 Параллельная бустованная версия ведет себя стабильно при фиксированном размере матрицы.
 
+### Графики
+1. Boosted parallel with fixed matrix sizes
+<image src="screenshots/boosted_par_fixed.png">
+
+2. Boosted parallel vs boosted sequential
+<image src="screenshots/boosted_par_seq.png">
+
+3. Boosted parallel vs trivial parallel
+<image src="screenshots/boosted_trivial_par.png">
 
 ### Скриншоты работы
 <image src="screenshots/1.png">
