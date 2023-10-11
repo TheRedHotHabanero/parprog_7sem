@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
         print_matrix(matrixB, N, "MATRIX B");
     }
 
+    /*
     matrix_type matrixResultSeq = trivial::matrix_multiplication_sequential(matrixA, matrixB);
     matrix_type matrixResultPar = trivial::matrix_multiplication_parallel(matrixA, matrixB);
 
@@ -54,6 +55,7 @@ int main(int argc, char *argv[]) {
         std::cout << "Invalid results for trivial." << std::endl;
         return 3;
     }
+    */
 
     matrix_type matrixResultSeqBoosted = boosted::call_boosted_matrix_multiplication_sequential(matrixA, matrixB, N, BLOCK_SIZE);
     matrix_type matrixResultParBoosted = boosted::call_boosted_matrix_multiplication_parallel(matrixA, matrixB, N, BLOCK_SIZE);

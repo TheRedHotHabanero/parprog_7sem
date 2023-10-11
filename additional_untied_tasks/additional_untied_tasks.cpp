@@ -35,6 +35,7 @@ void safe_untied_tasks(const int& num_threads) {
                 common_variable *= 2; // Важен порядок, что умножается! до сложения или после. или после скольких?
             }
             // std::cout << "Thread #" << thread_num << " on line. Common variable = " << common_variable << std::endl;
+            #pragma omp wait
         }
     }
 
@@ -65,6 +66,7 @@ void unsafe_untied_tasks(const int& num_threads) {
             common_variable *= 2; // Важен порядок, что умножается! до сложения или после. или после скольких?
         }
         // std::cout << "Thread #" << thread_num << " on line. Common variable = " << common_variable << std::endl;
+        #pragma omp wait
     }
 
     std::cout << "Unsafe mode. Common variable: " << common_variable << std::endl;

@@ -3,5 +3,6 @@ intro_OPENMP/summ
 intro_OPENMP/sequential_access
 additional_nested_omp/additional_nested_omp
 additional_untied_tasks/additional_untied_tasks
+additional_sort/additional_sort
 additional_matrix/build
 .vscode/
