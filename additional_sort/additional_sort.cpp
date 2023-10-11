@@ -60,6 +60,38 @@ void merge(std::vector<int>& arr, int left, int mid, int right) {
 }
 
 // PArallel sort using merge sort with OMP
+void slow_parallelMergeSort(std::vector<int>& arr, int left, int right, int threshold) {
+    if (left < right) {
+        if (right - left < threshold) {
+        if (right - left < threshold) {
+            // Используем сортировку слиянием
+            int mid = left + (right - left) / 2;
+            slow_parallelMergeSort(arr, left, mid, threshold);
+            slow_parallelMergeSort(arr, mid + 1, right, threshold);
+            merge(arr, left, mid, right);
+        }
+        }
+        else {
+            int mid = left + (right - left) / 2;
+
+            #pragma omp parallel
+            #pragma omp single nowait
+            {
+                #pragma omp task
+                slow_parallelMergeSort(arr, left, mid, threshold);
+
+                #pragma omp task
+                slow_parallelMergeSort(arr, mid + 1, right, threshold);
+            }
+            #pragma omp taskwait
+
+            merge(arr, left, mid, right);
+        }
+    }
+}
+
+
+// PArallel sort using merge sort with OMP
 void parallelMergeSort(std::vector<int>& arr, int left, int right, int threshold) {
     if (left < right) {
         if (right - left < threshold) {
@@ -112,15 +144,24 @@ int main(int argc, char *argv[]) {
     std::vector<int> array(array_size);
     fill_array(array, array_size);
 
-    int threshold = 100; // Min for starting sequential part
+    int threshold = 300; // Min for starting sequential part
+
+    std::vector<int> copy = array;
+
+    double slow_start_time = omp_get_wtime();
+    slow_parallelMergeSort(array, 0, array_size - 1, threshold);
+    double slow_end_time = omp_get_wtime();
+    double slow_time = (slow_end_time - slow_start_time) * 1000;
 
     double start_time = omp_get_wtime();
-    parallelMergeSort(array, 0, array_size - 1, threshold);
+    parallelMergeSort(copy, 0, array_size - 1, threshold);
     double end_time = omp_get_wtime();
+    double time = (end_time - start_time) * 1000;
 
-    check_sort(array, array_size, threshold);    
+    // check_sort(array, array_size, threshold);    
 
-    std::cout << "Taken time: " << (end_time - start_time) * 1000 << " ms" << std::endl;
+    // std::cout << "Taken time: " << (end_time - start_time) * 1000 << " ms" << std::endl;
+    std::cout << array_size << "," << slow_time << "," << time << std::endl;
 
     return 0;
 }
