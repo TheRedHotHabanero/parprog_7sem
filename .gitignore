@@ -1,10 +1,11 @@
 intro_OPENMP/hello
 intro_OPENMP/summ
 intro_OPENMP/sequential_access
-additional_nested_omp/additional_nested_omp
-additional_untied_tasks/additional_untied_tasks
-additional_sort/additional_sort
-additional_matrix/build
+additional_tasks/additional_nested_omp/additional_nested_omp
+additional_tasks/additional_untied_tasks/additional_untied_tasks
+additional_tasks/additional_sort/additional_sort
+additional_tasks/additional_matrix/build
 .vscode/
-tmp/
-additional_sieve_eratosthenes/a.out
+additional_tasks/tmp/
+additional_tasks/additional_sieve_eratosthenes/a.out
+lab_1/build
