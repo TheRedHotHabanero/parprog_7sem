@@ -1,12 +1,18 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <chrono>
 
 const int ISIZE = 5000;
 const int JSIZE = 5000;
-
 void task_3_sequential() {
-    double a[ISIZE][JSIZE], b[ISIZE][JSIZE];
+    double** a = new double*[ISIZE];
+    double** b = new double*[ISIZE];
+    for (int i = 0; i < ISIZE; ++i)
+    {
+        a[i] = new double[JSIZE];
+        b[i] = new double[JSIZE];
+    }
 
     // Инициализация массивов
     for (int i = 0; i < ISIZE; i++) {
@@ -17,6 +23,7 @@ void task_3_sequential() {
     }
 
     // Начало измерения времени
+    auto start_time = std::chrono::high_resolution_clock::now();
 
     // Обработка массива a
     for (int i = 0; i < ISIZE; i++) {
@@ -33,9 +40,12 @@ void task_3_sequential() {
     }
 
     // Окончание измерения времени
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    std::cout << "Sequential: " << duration.count() << " mls" << std::endl;
 
     // Запись результатов в файл
-    std::ofstream ff("result.txt");
+    std::ofstream ff("result_task_3_sequential.txt");
     for (int i = 0; i < ISIZE; i++) {
         for (int j = 0; j < JSIZE; j++) {
             ff << b[i][j] << ' ';
@@ -45,8 +55,16 @@ void task_3_sequential() {
     ff.close();
 }
 
-void task_2_parallel() {
-    double a[ISIZE][JSIZE], b[ISIZE][JSIZE];
+void task_3_parallel() {
+    double** a = new double*[ISIZE];
+    double** b = new double*[ISIZE];
+    for (int i = 0; i < ISIZE; ++i)
+    {
+        a[i] = new double[JSIZE];
+        b[i] = new double[JSIZE];
+    }
+
+    std::ofstream ff("result_task_3_parallel.txt");
 
     // Инициализация массивов
     for (int i = 0; i < ISIZE; i++) {
@@ -60,17 +78,20 @@ void task_2_parallel() {
     auto start_time = std::chrono::high_resolution_clock::now();
 
     // Обработка массива a параллельно
-    #pragma omp parallel for collapse(2)
+    // Основной цикл для параллелизма
+    #pragma omp parallel for schedule(guided)
     for (int i = 0; i < ISIZE; i++) {
         for (int j = 0; j < JSIZE; j++) {
             a[i][j] = sin(0.002 * a[i][j]);
         }
     }
 
+    // Барьерная синхронизация между циклами
+    #pragma omp barrier
+
     // Обработка массива b параллельно с копированием данных
-    #pragma omp parallel for
+    #pragma omp parallel for // от этого есть прирост, но не великий
     for (int i = 0; i < ISIZE - 4; i++) {
-        #pragma omp simd
         for (int j = 1; j < JSIZE; j++) {
             b[i][j] = a[i + 4][j - 1] * 1.5;
         }
@@ -80,10 +101,9 @@ void task_2_parallel() {
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 
-    std::cout << "Параллельно: " << duration.count() << " мс" << std::endl;
+    std::cout << "Parallel: " << duration.count() << " mls" << std::endl;
 
     // Запись результатов в файл
-    std::ofstream ff("result_parallel.txt");
     for (int i = 0; i < ISIZE; i++) {
         for (int j = 0; j < JSIZE; j++) {
             ff << b[i][j] << ' ';
@@ -91,6 +111,11 @@ void task_2_parallel() {
         ff << '\n';
     }
     ff.close();
+}
+
+int main() {
+    task_3_sequential();
+    task_3_parallel();
 
     return 0;
 }

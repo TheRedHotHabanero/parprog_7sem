@@ -6,6 +6,9 @@ example="scripts/example.sh"
 # Путь ко второму скрипту
 task2="scripts/task2.sh"
 
+# Путь ко второму скрипту
+task3="scripts/task3.sh"
+
 # Проверяем, существуют ли файлы
 if [ ! -f "$example" ]; then
     echo "File '$example' is not found."
@@ -17,18 +20,30 @@ if [ ! -f "$task2" ]; then
     exit 1
 fi
 
+if [ ! -f "$task3" ]; then
+    echo "File '$task3' is not found."
+    exit 1
+fi
+
 # Запускаем первый скрипт
-echo "---------- Run example ----------"
-echo " "
-bash "$example"
-echo "---------- Example completed ----------"
-echo " "
+# echo "---------- Run example ----------"
+# echo " "
+# bash "$example"
+# echo "---------- Example completed ----------"
+# echo " "
 
 # Запускаем второй скрипт
-echo "---------- Run task2 ----------"
+# echo "---------- Run task2 ----------"
+# echo " "
+# bash "$task2"
+# echo "---------- Task2 completed ----------"
+# echo " "
+
+# Запускаем третий скрипт
+echo "---------- Run task3 ----------"
 echo " "
-bash "$task2"
-echo "---------- Task1 completed ----------"
+bash "$task3"
+echo "---------- Task3 completed ----------"
 echo " "
 
 echo "---------- All scripts completed ----------"
