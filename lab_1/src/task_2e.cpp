@@ -6,14 +6,14 @@
 const int ISIZE = 5000;
 const int JSIZE = 5000;
 
-void task_1_sequential() {
+void task_2_sequential() {
     double** a = new double*[ISIZE];
     for (int i = 0; i < ISIZE; ++i)
     {
         a[i] = new double[JSIZE];
     }
 
-    std::ofstream ff("result_task_1_sequential.txt");
+    std::ofstream ff("result_task_2_sequential.txt");
 
     // Инициализация массива
     for (int i = 0; i < ISIZE; ++i)
@@ -60,22 +60,24 @@ void task_1_sequential() {
     delete[] a;
 }
 
-void task_1_parallel() {
+void task_2_parallel() {
 
-    double **a = new double *[ISIZE];
+    double** a = new double*[ISIZE];
+    double** b = new double*[ISIZE];
     for (int i = 0; i < ISIZE; ++i)
     {
         a[i] = new double[JSIZE];
+        b[i] = new double[JSIZE];
     }
 
-    std::ofstream ff("result_task_1_parallel.txt");
+    std::ofstream ff("result_task_2_parallel.txt");
 
     // Инициализация массива
     for (int i = 0; i < ISIZE; ++i)
     {
         for (int j = 0; j < JSIZE; ++j)
         {
-            a[i][j] = 10 * i + j;
+            b[i][j] = 10 * i + j;
         }
     }
 
@@ -83,14 +85,25 @@ void task_1_parallel() {
     auto start_time = std::chrono::high_resolution_clock::now();
 
     // Часть кода для измерения времени с использованием OpenMP
-    #pragma omp parallel for collapse(2) shared(a) schedule(static)
-    for (int i = 0; i < ISIZE - 4; ++i)
-    {
-        for (int j = 0; j < JSIZE - 2; ++j)
-        {
-            double temp = std::sin(0.1 * a[i + 4][j + 2]);
-            #pragma omp atomic write
-            a[i][j] = temp;
+    // Достаточно запомнить "полоски" на границах на глубину антизависимости и спокойно распараллелить по внешнему циклу
+    #pragma omp parallel for schedule(guided)
+    for (size_t i = 0; i != ISIZE - 4; ++i) {
+        for (size_t j = 0; j != JSIZE - 2; ++j) {
+            a[i][j] = std::sin(0.1 * b[i + 4][j + 2]);
+        }
+    }
+
+    // Заполнение пропущенных мест значением 
+    for (size_t i = 0; i < ISIZE - 4; ++i) {
+        for (size_t j = JSIZE - 2; j < JSIZE; ++j) {
+            a[i][j] = 10 * i + j;
+        }
+    }
+
+    // Заполнение пропущенных мест в начале массива значением
+    for (size_t i = ISIZE - 4; i < ISIZE; ++i) {
+        for (size_t j = 0; j < JSIZE - 2; ++j) {
+            a[i][j] = 10 * i + j;
         }
     }
 
@@ -109,18 +122,11 @@ void task_1_parallel() {
         }
         ff << '\n';
     }
-
-    // Освобождение выделенной памяти
-    for (int i = 0; i < ISIZE; ++i)
-    {
-        delete[] a[i];
-    }
-    delete[] a;
 }
 
 int main() {
-    task_1_sequential();
-    task_1_parallel();
+    task_2_sequential();
+    task_2_parallel();
 
     return 0;
 }
