@@ -4,8 +4,10 @@
 #include <chrono>
 #include <mpi.h>
 
-const int YSIZE = 5000;
-const int XSIZE = 5000;
+const int ISIZE = 5000;
+const int JSIZE = 5000;
+
+int my_rank;
 
 static inline double initial_value(int y, int x)
 {
@@ -31,54 +33,47 @@ void free_matrix(double **matrix, int len_y)
     free(matrix);
 }
 
-void task_1_sequential()
+void initMatrix(double **matrix)
 {
-    std::ofstream ff("result_task_1_sequential.txt");
-    double **a = empty_matrix(YSIZE, XSIZE);
-    int y, x;
-    for (y = 0; y < YSIZE; y++)
-    {
-        for (x = 0; x < XSIZE; x++)
-        {
-            a[y][x] = 10 * y + x;
-        }
-    }
 
-    // начало измерения времени
-    double time_1 = MPI_Wtime();
-    for (y = 1; y < YSIZE; y++)
+    for (int i = 0; i < YSIZE; i++)
     {
-        for (x = 8; x < XSIZE; x++)
+        for (int j = 0; j < XSIZE; j++)
         {
-            a[y][x] = sin(5 * a[y - 1][x - 8]);
+            matrix[i][j] = 10 * i + j;
         }
     }
-    double time_2 = MPI_Wtime();
-    printf("%lf", time_2 - time_1);
-    // окончание измерения времени
-    // Запись результатов в файл
-    for (int i = 0; i < 500; ++i)
-    {
-        for (int j = 0; j < 500; ++j)
-        {
-            ff << a[i][j] << ' ';
-        }
-        ff << '\n';
-    }
-    free_matrix(a, YSIZE);
 }
 
-void task_1_parallel(int argc, char *argv[])
+void foldMatrixByVector(double **matrix, const double *vector, const int len)
 {
-    std::ofstream ff("result_task_1_sequential.txt");
+    int y0 = (int)vector[0];
+    int x0 = (int)vector[1];
+    for (int x = x0, y = y0, i = 2; i < len; ++i, ++y, x += 8)
+    {
+        matrix[y][x] = vector[i];
+    }
+}
+
+int main(int argc, char *argv[])
+{
     if (argc != 1 && argc != 2)
     {
         printf("Wrong number of args! Please provide 2 arguments\n");
         exit(-1);
     }
-
+    char *file;
+    if (argc == 2)
+    {
+        file = argv[3];
+    }
+    else
+    {
+        file = "result_task_1_parallel.txt";
+    }
     MPI_Init(&argc, &argv);
-    int my_rank, world_size;
+    double **matrix = NULL;
+    int world_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
@@ -90,7 +85,33 @@ void task_1_parallel(int argc, char *argv[])
 
     if (my_rank == 0)
     {
-        task_1_sequential(); // Call the sequential part in rank 0
+        matrix = empty_matrix(YSIZE, XSIZE);
+        initMatrix(matrix);
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    double time_1 = MPI_Wtime();
+    if (my_rank == 0)
+    {
+        double buf[XSIZE / 7];
+        int roots = XSIZE - 8 + YSIZE * 8;
+        MPI_Status status;
+        for (int i = 0; i < roots; ++i)
+        {
+            MPI_Recv(
+                buf,
+                XSIZE,
+                MPI_DOUBLE,
+                MPI_ANY_SOURCE,
+                MPI_ANY_SOURCE,
+                MPI_COMM_WORLD,
+                &status);
+            int y0 = (int)buf[0];
+            int x0 = (int)buf[1];
+            int message_len = 0;
+            MPI_Get_count(&status, MPI_DOUBLE, &message_len);
+            foldMatrixByVector(matrix, buf, message_len);
+        }
     }
     else
     {
@@ -159,22 +180,27 @@ void task_1_parallel(int argc, char *argv[])
                 MPI_COMM_WORLD);
         }
     }
-
-    MPI_Finalize();
-    // Запись результатов в файл
-    for (int i = 0; i < 500; ++i)
+    double time_2 = MPI_Wtime();
+    if (my_rank == 0)
     {
-        for (int j = 0; j < 500; ++j)
+        printf("%lf", time_2 - time_1);
+        FILE *ff;
+        ff = fopen(file, "w");
+        for (int y = 0; y < YSIZE; y++)
         {
-            ff << arr[i][j] << ' ';
+            for (int x = 0; x < XSIZE; x++)
+            {
+                fprintf(ff, "%f ", matrix[y][x]);
+                if (x < XSIZE - 1)
+                {
+                    fprintf(ff, ", ");
+                }
+            }
+            fprintf(ff, "\n");
         }
-        ff << '\n';
+        fclose(ff);
+        free_matrix(matrix, YSIZE);
     }
-}
-
-int main(int argc, char *argv[])
-{
-    task_1_sequential();
-    task_1_parallel(argc, argv);
-    return 0;
+    MPI_Finalize();
+    return EXIT_SUCCESS;
 }
