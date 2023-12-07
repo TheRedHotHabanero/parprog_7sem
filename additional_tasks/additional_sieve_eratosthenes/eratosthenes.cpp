@@ -6,95 +6,84 @@
 
 void sieveOfEratosthenes(long long int n) {
     // Create Vector to store information about primary numbers
-    std::vector<bool> isPrime(n + 1, 1);
+    std::vector<bool> isPrime(n + 1, true);
 
     // Lets start from the very first primary number - 2
-    // Начинаем с первого простого числа - 2
     for (long long int p = 2; p <= n; p++) {
-        // Если текущее число p еще не было отмечено, как составное
         if (isPrime[p]) {
-            // Отмечаем все кратные p как составные числа
-            for (int i = std::pow(p, 2); i <= n; i += p) {
-                // isPrime[i] = 0;
+            for (long long int i = p * p; i <= n; i += p) {
+                isPrime[i] = false;
             }
         }
     }
 
-    // Represent all primary numbers
-    //std::cout << "Primary numbers from N = " << n << ":" << std::endl;
-    // int primary_counter = 0;
-    // for (int p = 2; p <= n; p++) {
+    // Output prime numbers (you can uncomment this part if needed)
+    // std::cout << "Prime numbers for N = " << n << ":" << std::endl;
+    // int prime_counter = 0;
+    // for (long long int p = 2; p <= n; p++) {
     //     if (isPrime[p]) {
-    //         // std::cout << p << " ";
-    //         primary_counter += 1;
+    //         std::cout << p << " ";
+    //         prime_counter++;
     //     }
     // }
     // std::cout << std::endl;
-    // std::cout << "Sequential: Quantity of primary numbers is " << primary_counter << "." << std::endl;
+    // std::cout << "Sequential: Quantity of prime numbers is " << prime_counter << "." << std::endl;
 }
 
-void parallelSieveOfEratosthenes(long long int n) {
-    // Создаем вектор для хранения информации о простых числах
-    std::vector<bool> isPrime(n + 1, 1);
-    int sqrt_n = std::sqrt(n) + 1;
-    #pragma opm sections
+void parallelSieveOfEratosthenes(long long int n, int num_threads) {
+    // Create Vector to store information about primary numbers
+    std::vector<bool> isPrime(n + 1, true);
+    long long int square = std::sqrt(n);
+
+    #pragma omp parallel num_threads(num_threads) default(none) shared(isPrime, n, square)
     {
-        #pragma omp sections
-        {
-            #pragma omp parallel for schedule(dynamic) shared(isPrime)
-            for (int i = 2; i <= n; i+=2) {
-                isPrime[i] = 0;
-            }
-        }
-        // Начинаем с первого простого числа - 2
-        #pragma omp sections
-        {
-            for (int p = 3; p * p <= n; p+=2) {
-                // Если текущее число p еще не было отмечено, как составное
-                if (isPrime[p]) {
-                    // Пропускаем кратные числа p, начиная с p^2
-                    #pragma omp parallel for schedule(dynamic) shared(isPrime) firstprivate(p)
-                    for (int i = p * p; i <= n; i += p) {
-                        // isPrime[i] = 0;
-                    }
+        #pragma omp for schedule(dynamic)
+        for (long long int p = 2; p < square + 1; p++) {
+            if (isPrime[p]) {
+                for (long long int i = p * p; i <= n; i += p) {
+                    isPrime[i] = false;
                 }
             }
         }
     }
 
-    // Выводим простые числа (можете закомментировать эту часть, если не нужно выводить числа)
-    // std::cout << "Primary numbers for N = " << n << ":" << std::endl;
-    // int primary_counter = 1;
-    // #pragma omp parallel for schedule(dynamic) shared(isPrime)
-    // for (int p = 2; p <= n; p++) {
+    // Output prime numbers (you can uncomment this part if needed)
+    // std::cout << "Prime numbers for N = " << n << ":" << std::endl;
+    // int prime_counter = 0;
+    // #pragma omp parallel for schedule(dynamic) reduction(+:prime_counter)
+    // for (long long int p = 2; p <= n; p++) {
     //     if (isPrime[p]) {
-    //         // std::cout << p << " ";
-    //         primary_counter++;
+    //         std::cout << p << " ";
+    //         prime_counter++;
     //     }
     // }
     // std::cout << std::endl;
-    // std::cout << "Parallel: Quantity of primary numbers is " << primary_counter << "." << std::endl;
+    // std::cout << "Parallel: Quantity of prime numbers is " << prime_counter << "." << std::endl;
 }
 
-int main() {
-    // Enter N number
-    long long int N;
-    std::cout << "Enter number N: ";
-    std::cin >> N;
+int main(int argc, char *argv[]) {
+    // Enter N number and number of threads
+    if (argc != 3) {
+        std::cout << "Usage: " << argv[0] << " <N> <num_threads>" << std::endl;
+        return 1;
+    }
+    const long long int N = std::atoi(argv[1]);
+    const int num_threads = std::atoi(argv[2]);
 
-    // Замеряем время выполнения для параллельной версии
-    auto startParallel = std::chrono::high_resolution_clock::now();
-    parallelSieveOfEratosthenes(N);
-    auto stopParallel = std::chrono::high_resolution_clock::now();
-    auto durationParallel = std::chrono::duration_cast<std::chrono::milliseconds>(stopParallel - startParallel);
-    std::cout << "Parallel taken time: " << durationParallel.count() << " mcs" << std::endl;
-
-    // Замеряем время выполнения для последовательной версии
+    // Measure the execution time for the sequential version
+    std::cout << N << ",";
     auto startSequential = std::chrono::high_resolution_clock::now();
     sieveOfEratosthenes(N);
     auto stopSequential = std::chrono::high_resolution_clock::now();
-    auto durationSequential = std::chrono::duration_cast<std::chrono::milliseconds>(stopSequential - startSequential);
-    std::cout << "Sequantial taken time: " << durationSequential.count() << " mcs" << std::endl;
+    auto durationSequential = std::chrono::duration_cast<std::chrono::microseconds>(stopSequential - startSequential);
+    std::cout << durationSequential.count();
+
+    // Measure the execution time for the parallel version
+    auto startParallel = std::chrono::high_resolution_clock::now();
+    parallelSieveOfEratosthenes(N, num_threads);
+    auto stopParallel = std::chrono::high_resolution_clock::now();
+    auto durationParallel = std::chrono::duration_cast<std::chrono::microseconds>(stopParallel - startParallel);
+    std::cout << "," << durationParallel.count() << std::endl;
 
     return 0;
 }
