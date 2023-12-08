@@ -1,9 +1,8 @@
 #!/bin/bash
 
 RESULTS_FILE="results.txt"
-BUILD="../build"
 
-MATRIX_BIN="./a.out"
+MATRIX_BIN="a.out"
 
 echo $SEPARATOR >> $RESULTS_FILE
 
