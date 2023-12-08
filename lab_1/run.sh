@@ -4,7 +4,7 @@
 example="scripts/example.sh"
 
 # Путь ко второму скрипту
-# task1="scripts/task1.sh"
+task1="scripts/task1.sh"
 
 # Путь ко второму скрипту
 task2="scripts/task2.sh"
@@ -18,10 +18,10 @@ if [ ! -f "$example" ]; then
     exit 1
 fi
 
-# if [ ! -f "$task1" ]; then
-#     echo "File '$task1' is not found."
-#     exit 1
-# fi
+if [ ! -f "$task1" ]; then
+    echo "File '$task1' is not found."
+    exit 1
+fi
 
 if [ ! -f "$task2" ]; then
     echo "File '$task2' is not found."
@@ -41,11 +41,11 @@ echo "---------- Example completed ----------"
 echo " "
 
 # Запускаем первый скрипт
-# echo "---------- Run task1 ----------"
-# echo " "
-# bash "$task1"
-# echo "---------- Task1 completed ----------"
-# echo " "
+echo "---------- Run task1 ----------"
+echo " "
+bash "$task1"
+echo "---------- Task1 completed ----------"
+echo " "
 
 # Запускаем второй скрипт
 echo "---------- Run task2 ----------"
