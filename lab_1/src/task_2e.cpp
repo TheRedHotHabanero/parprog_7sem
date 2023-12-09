@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cmath>
 #include <chrono>
+#include <omp.h>
 
 const int ISIZE = 5000;
 const int JSIZE = 5000;

@@ -5,10 +5,8 @@
 #include <cmath>
 
 void sieveOfEratosthenes(long long int n) {
-    // Create Vector to store information about primary numbers
     std::vector<bool> isPrime(n + 1, true);
 
-    // Lets start from the very first primary number - 2
     for (long long int p = 2; p <= n; p++) {
         if (isPrime[p]) {
             for (long long int i = p * p; i <= n; i += p) {
@@ -17,7 +15,7 @@ void sieveOfEratosthenes(long long int n) {
         }
     }
 
-    // Output prime numbers (you can uncomment this part if needed)
+    // Output prime numbers
     // std::cout << "Prime numbers for N = " << n << ":" << std::endl;
     // int prime_counter = 0;
     // for (long long int p = 2; p <= n; p++) {
@@ -31,7 +29,6 @@ void sieveOfEratosthenes(long long int n) {
 }
 
 void parallelSieveOfEratosthenes(long long int n, int num_threads) {
-    // Create Vector to store information about primary numbers
     std::vector<bool> isPrime(n + 1, true);
     long long int square = std::sqrt(n);
 
@@ -47,7 +44,7 @@ void parallelSieveOfEratosthenes(long long int n, int num_threads) {
         }
     }
 
-    // Output prime numbers (you can uncomment this part if needed)
+    // Output prime numbers
     // std::cout << "Prime numbers for N = " << n << ":" << std::endl;
     // int prime_counter = 0;
     // #pragma omp parallel for schedule(dynamic) reduction(+:prime_counter)
@@ -62,7 +59,6 @@ void parallelSieveOfEratosthenes(long long int n, int num_threads) {
 }
 
 int main(int argc, char *argv[]) {
-    // Enter N number and number of threads
     if (argc != 3) {
         std::cout << "Usage: " << argv[0] << " <N> <num_threads>" << std::endl;
         return 1;

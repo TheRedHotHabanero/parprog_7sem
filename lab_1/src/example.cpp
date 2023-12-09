@@ -2,9 +2,15 @@
 #include <fstream>
 #include <cmath>
 #include <chrono>
+#include <omp.h>
 
 const int ISIZE = 5000;
 const int JSIZE = 5000;
+
+// <=, =>
+// Такой цикл может быть 
+// распараллелен  без  всяких  ограничений  по  любому  количеству 
+// индексов, соответствующих компонентам «=» в векторе направлений
 
 
 void example_parallel() {
@@ -28,11 +34,10 @@ void example_parallel() {
     // Начало измерения времени
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    // Часть кода для измерения времени с использованием OpenMP
-    #pragma omp parallel for
+    // Часть кода для измерения времени
+    #pragma omp parallel for // просто втупую втапливаем
     for (int i = 0; i < ISIZE; ++i)
     {
-        #pragma omp parallel for
         for (int j = 0; j < JSIZE; ++j)
         {
             a[i][j] = std::sin(2 * a[i][j]);
@@ -46,9 +51,9 @@ void example_parallel() {
     std::cout << "Parallel: " << duration.count() << " mls" << std::endl;
 
     // Запись результатов в файл
-    for (int i = 0; i < ISIZE; ++i)
+    for (int i = 0; i < 500; ++i)
     {
-        for (int j = 0; j < JSIZE; ++j)
+        for (int j = 0; j < 500; ++j)
         {
             ff << a[i][j] << ' ';
         }
@@ -100,9 +105,9 @@ void example_sequential() {
     std::cout << "Sequential: " << duration.count() << " mls" << std::endl;
 
     // Запись результатов в файл
-    for (int i = 0; i < ISIZE; ++i)
+    for (int i = 0; i < 500; ++i)
     {
-        for (int j = 0; j < JSIZE; ++j)
+        for (int j = 0; j < 500; ++j)
         {
             ff << a[i][j] << ' ';
         }

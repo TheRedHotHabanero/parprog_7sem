@@ -7,7 +7,7 @@
 const int ISIZE = 5000;
 const int JSIZE = 5000;
 
-void task_1_sequential()
+int task_1_sequential()
 {
     int i, j;
 
@@ -39,8 +39,9 @@ void task_1_sequential()
     // Окончание измерения времени
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    auto res = duration;
 
-    std::cout << "Sequential: " << duration.count() << " mls" << std::endl;
+    // std::cout << "Sequential: " << duration.count() << " mls" << std::endl;
 
     for (int i = 0; i < 500; ++i)
     {
@@ -57,9 +58,10 @@ void task_1_sequential()
         delete[] a[i];
     }
     delete[] a;
+    return res;
 }
 
-void task_1_parallel(int argc, char **argv)
+int task_1_parallel(int argc, char **argv)
 {
     int i, j;
 
@@ -95,8 +97,9 @@ void task_1_parallel(int argc, char **argv)
     // Окончание измерения времени
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    auto res = duration;
 
-    std::cout << "Parallel: " << duration.count() << " mls" << std::endl;
+    // std::cout << "Parallel: " << duration.count() << " mls" << std::endl;
     // окончание измерения времени
 
     if (this_rank != 0)
@@ -148,12 +151,15 @@ void task_1_parallel(int argc, char **argv)
     free(a);
 
     MPI_Finalize();
+    return res;
 }
 
 int main(int argc, char **argv)
 {
-    task_1_sequential();
-    task_1_parallel(argc, argv);
+    auto seq = task_1_sequential();
+    std::cout << "Parallel: " << seq << " mls" << std::endl;
+    auto par = task_1_parallel(argc, argv);
+    std::cout << "Parallel: " << par << " mls" << std::endl;
 
     return 0;
 }
