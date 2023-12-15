@@ -39,27 +39,31 @@ echo " "
 bash "$example"
 echo "---------- Example completed ----------"
 echo " "
+echo " "
 
 # Запускаем первый скрипт
-# echo "---------- Run task1 ----------"
-# echo " "
-# bash "$task1"
-# echo "---------- Task1 completed ----------"
-# echo " "
-# 
-# # Запускаем второй скрипт
-# echo "---------- Run task2 ----------"
-# echo " "
-# bash "$task2"
-# echo "---------- Task2 completed ----------"
-# echo " "
-# 
-# # Запускаем третий скрипт
-# echo "---------- Run task3 ----------"
-# echo " "
-# bash "$task3"
-# echo "---------- Task3 completed ----------"
-# echo " "
-# 
-# echo "---------- All scripts completed ----------"
-# echo " "
+echo "---------- Run task1 ----------"
+echo " "
+bash "$task1"
+echo "---------- Task1 completed ----------"
+echo " "
+echo " "
+
+# Запускаем второй скрипт
+echo "---------- Run task2 ----------"
+echo " "
+bash "$task2"
+echo "---------- Task2 completed ----------"
+echo " "
+echo " "
+
+# Запускаем третий скрипт
+echo "---------- Run task3 ----------"
+echo " "
+bash "$task3"
+echo "---------- Task3 completed ----------"
+echo " "
+echo " "
+
+echo "---------- All scripts completed ----------"
+echo " "

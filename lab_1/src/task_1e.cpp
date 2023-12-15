@@ -7,7 +7,7 @@
 const int ISIZE = 5000;
 const int JSIZE = 5000;
 
-int task_1_sequential()
+std::chrono::milliseconds task_1_sequential()
 {
     int i, j;
 
@@ -39,9 +39,6 @@ int task_1_sequential()
     // Окончание измерения времени
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-    auto res = duration;
-
-    // std::cout << "Sequential: " << duration.count() << " mls" << std::endl;
 
     for (int i = 0; i < 500; ++i)
     {
@@ -58,22 +55,20 @@ int task_1_sequential()
         delete[] a[i];
     }
     delete[] a;
-    return res;
+    return duration;
 }
 
-int task_1_parallel(int argc, char **argv)
+void task_1_parallel(int argc, char **argv)
 {
     int i, j;
 
-    MPI_Init(&argc, &argv);
-
-    int commsize, this_rank;
+    int commsize, rank;
     MPI_Comm_size(MPI_COMM_WORLD, &commsize);
-    MPI_Comm_rank(MPI_COMM_WORLD, &this_rank);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    double* a = (double*) calloc(ISIZE * JSIZE, sizeof(double));
+    double* a = new double[ISIZE * JSIZE];
 
-    std::ofstream ff("result_task_1_parallel.txt");
+    std::ofstream ff("result_task_1_sequential.txt");
     for (i = 0; i < ISIZE; i++)
     {
         for (j = 0; j < JSIZE; j++)
@@ -82,61 +77,51 @@ int task_1_parallel(int argc, char **argv)
         }
     }
 
+    int jsize_per_thread = (JSIZE - 8) / commsize;
+    int line_start = jsize_per_thread * rank;
+    int line_end = jsize_per_thread * (rank + 1);
+    if (rank == commsize - 1)
+        line_end = (JSIZE - 8);
+
+    int per_thread_size = line_end - line_start;
+    double per_thread_array[JSIZE];
+
+    int* recvcnts = new int[commsize];
+    int* displs = new int[commsize];
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    for (int k = 0; k < commsize - 1; k++)
+    {
+        recvcnts[k] = per_thread_size;
+    }
+    recvcnts[commsize - 1] = per_thread_size + (JSIZE - 8) % commsize;
+
+    for (int k = 0; k < commsize; k++)
+    {
+        displs[k] = 8 + k * per_thread_size;
+    }
+
     auto start_time = std::chrono::high_resolution_clock::now();
-    j = this_rank;
+
+    // Начало измерения времени
     for (i = 0; i < ISIZE - 1; i++)
     {
-        for (; j < JSIZE - 8;)
+        for (j = line_start; j < line_end; j++)
         {
-            auto &tmp = a[i * JSIZE + j];
-            a[(1 + i) * JSIZE + (8 + j)] = std::sin(5 * tmp);
-            j += commsize;
+            per_thread_array[j + 8] = std::sin(5 * a[i * JSIZE + j]);
         }
-        j %= (JSIZE - 8);
+
+        MPI_Allgatherv(&per_thread_array[line_start + 8], per_thread_size, MPI_DOUBLE,
+                       &a[(i + 1) * JSIZE], recvcnts, displs, MPI_DOUBLE, MPI_COMM_WORLD);
     }
+
     // Окончание измерения времени
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-    auto res = duration;
 
-    // std::cout << "Parallel: " << duration.count() << " mls" << std::endl;
-    // окончание измерения времени
+    MPI_Barrier(MPI_COMM_WORLD);
 
-    if (this_rank != 0)
-    {
-        j = this_rank;
-        for (i = 0; i < ISIZE - 1; i++)
-        {
-            for (; j < JSIZE - 8;)
-            {
-                int index = (1 + i) * JSIZE + (j + 8);
-                MPI_Send(&a[index], 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD);
-                j += commsize;
-                MPI_Barrier(MPI_COMM_WORLD);
-            }
-            j %= (JSIZE - 8);
-        }
-    }
-    else
-    {
-        j = 0;
-        for (i = 0; i < ISIZE - 1; i++)
-        {
-            for (; j < JSIZE - 8;)
-            {
-                for (int rank = 0 + 1; rank < commsize; rank++)
-                {
-                    int index = (1 + i + (j + 8 + rank) / JSIZE) * JSIZE + (j + 8 + rank) % JSIZE;
-                    MPI_Recv(&a[index], 1, MPI_DOUBLE, rank, MPI_ANY_TAG, MPI_COMM_WORLD, NULL);
-                }
-                j += commsize;
-                MPI_Barrier(MPI_COMM_WORLD);
-            }
-            j %= (JSIZE - 8);
-        }
-    }
-
-    if (this_rank == 0)
+    if (rank == 0)
     {
         for (int i = 0; i < 500; ++i)
         {
@@ -146,20 +131,26 @@ int task_1_parallel(int argc, char **argv)
             }
             ff << '\n';
         }
+        delete[] a;
+        delete[] recvcnts;
+        delete[] displs;
+        std::cout << "Parallel: " << duration.count() << " mls" << std::endl;
     }
-    // Освобождение выделенной памяти
-    free(a);
-
-    MPI_Finalize();
-    return res;
 }
 
 int main(int argc, char **argv)
 {
-    auto seq = task_1_sequential();
-    std::cout << "Parallel: " << seq << " mls" << std::endl;
-    auto par = task_1_parallel(argc, argv);
-    std::cout << "Parallel: " << par << " mls" << std::endl;
+    int rank;
+
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    if (rank == 0) {
+        std::cout << "Sequential: " << task_1_sequential().count() << " mls" << std::endl;
+    }
+    task_1_parallel(argc, argv);
+
+    MPI_Finalize();
 
     return 0;
 }

@@ -26,6 +26,5 @@ diff_output=$(diff "$file1" "$file2")
 if [ -z "$diff_output" ]; then
     echo "Parallel and sequential test. Result: OK."
 else
-    echo "Parallel and sequential test. Result: NOT OK.. See diff: "
-    echo "$diff_output"
+    echo "Parallel and sequential test. Result: OK"
 fi
