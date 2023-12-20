@@ -80,6 +80,7 @@ void task_3_parallel() {
 
     // Обработка массива a параллельно
     // Основной цикл для параллелизма
+    omp_set_num_threads(8);
     #pragma omp parallel for schedule(guided)
     for (int i = 0; i < ISIZE; i++) {
         for (int j = 0; j < JSIZE; j++) {

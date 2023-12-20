@@ -87,6 +87,7 @@ void task_2_parallel() {
 
     // Часть кода для измерения времени с использованием OpenMP
     // Достаточно запомнить "полоски" на границах на глубину антизависимости и спокойно распараллелить по внешнему циклу
+    omp_set_num_threads(8);
     #pragma omp parallel for schedule(guided)
     for (size_t i = 0; i != ISIZE - 4; ++i) {
         for (size_t j = 0; j != JSIZE - 2; ++j) {

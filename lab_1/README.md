@@ -3,5 +3,7 @@
 
 Результат:
 <image src="res.png">
+<image src="graph.png">
+<image src="res_times.png">
 
 Как запустить - см в скриптах соответствующей задачи
