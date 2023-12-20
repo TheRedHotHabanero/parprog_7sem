@@ -1,79 +1,29 @@
-#include <iostream>
-#include <fstream>
-#include <cmath>
-#include <limits>
+#include "common.hpp"
 
-const double tol = 1e-6;
-const double sqrt_a = sqrt(2.0);
-const double x_start = -10.0;
-const double x_end = 10.0;
-
-double f(double x, double y, double a) {
-    return a * (pow(y, 3) - y);
+void run()
+{
+    auto A_1 = initA_1();
+    auto A = initA();
+    auto Y = initY();
+    double mer = 10.0;
+    int curIter = 0;
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    while (mer > 0.005)
+    {
+        auto F = Par::calcF(Y);
+        auto dif = Par::Minus(F, Par::Mult(A, Y));
+        Y = Par::Plus(Y, Par::Div(Par::Mult(A_1, dif), 10));
+        mer = Par::dumpMer(dif);
+        ++curIter;
+    }
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "Parallel time : " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+    std::cout << "Used " << curIter << " iterations\n";
+    Par::dumpToFile(Y, "solution_par.txt");
 }
 
-double newton(double ym1, double y, double yp1, double h, double a) {
-    double f_m1 = f(0, ym1, a);
-    double f_m = f(0, y, a);
-    double f_p1 = f(0, yp1, a);
-    double delta = 0.0;
-
-    do {
-        double y_prime = y + delta;
-        double f_prime = f(0, y_prime, a);
-
-        if (std::abs(f_m - f_prime) < tol) {
-            delta = std::numeric_limits<double>::max();
-            break;
-        }
-
-        delta -= (h * h) * (f_prime - (2.0 * f_m - f_m1) / 12.0) /
-                 (2.0 * (f_m - f_prime));
-    } while (std::abs(delta) > tol);
-
-    return y + delta;
-}
-
-void solve_bvp(double a, int num_points, const std::string& filename) {
-    double h = (x_end - x_start) / static_cast<double>(num_points);
-    double *y = new double[num_points + 1];
-
-    y[0] = sqrt_a;
-    y[num_points] = sqrt_a;
-
-    #pragma omp parallel for
-    for (int i = 1; i < num_points; ++i) {
-        double x = x_start + i * h;
-        y[i] = newton(y[i - 1], y[i], y[i + 1], h, a);
-    }
-
-    std::ofstream outFile(filename);
-    if (!outFile.is_open()) {
-        std::cerr << "Unable to open the file: " << filename << std::endl;
-        return;
-    }
-
-    for (int i = 0; i <= num_points; ++i) {
-        // Проверка на NaN перед записью в файл
-        if (!std::isnan(y[i])) {
-            double x = x_start + i * h;
-            outFile << x << "\t" << y[i] << std::endl;
-        }
-    }
-
-    outFile.close();
-    delete[] y;
-}
-
-int main() {
-    double a_min = 100.0;
-    double a_max = 1000000.0;
-    int num_points = 400;
-
-    for (double a = a_min; a <= a_max; a *= 10) {
-        std::string filename = "solution_a_" + std::to_string(a) + ".txt";
-        solve_bvp(a, num_points, filename);
-    }
-
+int main(int argc, char **argv)
+{
+    run();
     return 0;
 }

@@ -1,4 +1,7 @@
+#!/usr/bin/python3
 import numpy  as np
+import matplotlib
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import sys
 
@@ -18,4 +21,7 @@ plt.title("Решение задачи на плоскости")
 plt.xlabel("x")
 plt.ylabel("y")
 plt.grid()
+plt.tight_layout()
+plt.savefig('Solution.png')
 plt.show()
+

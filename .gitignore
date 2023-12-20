@@ -9,4 +9,6 @@ additional_tasks/matrix/build
 additional_tasks/sieve_eratosthenes/a.out
 additional_tasks/sieve_eratosthenes/results.txt
 lab_1/build
-lab_2/build
+lab_2/a.out
+lab_2/tmp
+lab_2/solution_par.txt
